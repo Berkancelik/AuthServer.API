@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace AuthServer.Core.Models
 {
-    class UserRefreshToken
+    public class UserRefreshToken
     {
         public string RefreshToken { get; set; }
         public string Code { get; set; }

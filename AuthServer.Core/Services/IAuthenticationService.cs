@@ -18,7 +18,7 @@ namespace AuthServer.Core.Services
         //RevokeRefreshToken ele geçirildiği zaman ilgili kullanıcının datasını null a çevirir
         //yani refresh token da veri çalınmasını önlemek için revokerefreshtoken kullanılmaktadır
         
-        Task<Response<NoDataDto>> RevokeRefreshToken(string refreshToken);<
+        Task<Response<NoDataDto>> RevokeRefreshToken(string refreshToken);
 
         Task<Response<ClientLoginDto>> CreateTokenByClient(ClientLoginDto clientLoginDto);
 
