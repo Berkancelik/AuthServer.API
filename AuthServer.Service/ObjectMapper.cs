@@ -20,7 +20,10 @@ namespace AuthServer.Service
 
         });
 
+
+        // aşağıdakinin düzeltilmesi gerekebili
         public static IMapper Mapper => lazy.Value;
+
     }
 
 }

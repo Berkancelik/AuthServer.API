@@ -15,11 +15,11 @@ namespace AuthServer.Core.Services
         Task<Response<IEnumerable<TDto>>> GelAllAsync();
         Task<Response<IEnumerable<TDto>>> Where(Expression<Func<TEntity, bool>> predicate);
 
-        Task <Response<TDto>>AddAsync(TEntity entity);
-        Task<Response<TDto>> Remove(TEntity entity);
+        Task<Response<TDto>> AddAsync(TDto entity);
+        Task<Response<NoDataDto>> Remove(int id);
 
         // bir nesne update edildiğinde zaten client tarafındaolduğu için tekrar bir update nesnesi dönmemize gerek yoktur.
-        Task<Response<NoDataDto>> Update(TEntity entity);
+        Task<Response<NoDataDto>> Update(TDto entity, int id);
 
    
 
