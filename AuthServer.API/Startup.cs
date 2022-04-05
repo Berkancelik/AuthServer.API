@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using SharedLibrary.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,9 @@ namespace AuthServer.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Bu olaya ooptionsPattern denmektedir.
+            // aþaðýdaki konfigürasyon ile birlikte genel olarak projede istedeðimiz yerde geçebiliriz"CustomTokenOption"
+            services.Configure<CustomTokenOptions>(Configuration.GetSection("TokenOption"));
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
