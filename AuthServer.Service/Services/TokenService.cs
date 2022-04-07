@@ -4,6 +4,7 @@ using AuthServer.Core.Models;
 using AuthServer.Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using SharedLibrary.Configuration;
 using System;
 using System.Collections.Generic;
@@ -40,7 +41,7 @@ namespace AuthServer.Service.Services
 
         }
         // audienc:  bu token hangi api lere istek yapacağına karşılık gelmektedir.
-        private IEnumerable<Claim> GetClaim(UserApp userApp, List<String> audience)
+        private IEnumerable<Claim> GetClaims(UserApp userApp, List<String> audience)
         {
             var userList = new List<Claim> { 
 
@@ -75,7 +76,38 @@ namespace AuthServer.Service.Services
 
         public TokenDto CreateToken(UserApp userApp)
         {
-            throw new NotImplementedException();
+            var accessTokenExpiration = DateTime.Now.AddMinutes(_tokenOptions.AccessTokenExpiration);
+            var refreshTokenExpiration = DateTime.Now.AddMinutes(_tokenOptions.RefreshTokenExpiration);
+
+            var securitKey = SignService.GetSymmetricSecurityKey(_tokenOptions.SecurityKey);
+
+            // token algoritması aşağıdaki şekilde configure edilmiştir
+            SigningCredentials signingCredentials = new SigningCredentials(securitKey, SecurityAlgorithms.HmacSha256Signature);
+
+
+            // bu token'ı yayınlayan kim?
+            // notbefore : benim vermiş olduğum dk den itibaren dah önce geçersiz olmasın anlamını taşımaktadır
+            // 5 dakika boyunca sadece bu aralıkta token geçerli olacaktır.
+            JwtSecurityToken jwtSecurityToken = new JwtSecurityToken(
+                issuer: _tokenOptions.Issuer,
+                expires: accessTokenExpiration,
+                notBefore: DateTime.Now,
+                claims: GetClaims(userApp, _tokenOptions.Audience),
+                signingCredentials: signingCredentials);
+
+            // token aşağıdaki değer oluşturacaktır
+            var handler = new JwtSecurityTokenHandler();
+
+            var token = handler.WriteToken(jwtSecurityToken);
+            var tokenDto = new TokenDto
+            {
+                AccessToken = token,
+                RefreshToken = CreateRefreshToken(),
+                AccessTokenExpiration = accessTokenExpiration,
+                RefreshTokenExpiration = refreshTokenExpiration
+
+            };
+            return tokenDto;
         }
 
         public ClientTokenDto CreateTokenByClient(Client client)
