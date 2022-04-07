@@ -1,3 +1,4 @@
+using AuthServer.Core.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -30,6 +31,9 @@ namespace AuthServer.API
             // Bu olaya ooptionsPattern denmektedir.
             // aþaðýdaki konfigürasyon ile birlikte genel olarak projede istedeðimiz yerde geçebiliriz"CustomTokenOption"
             services.Configure<CustomTokenOptions>(Configuration.GetSection("TokenOption"));
+            
+            // aþaðýdaki yöntem ile Client'e herhangi bir constructor dan eriþebilirim. Bu isme de OpptionPatterns denir.
+            services.Configure<Client>(Configuration.GetSection("Clients"));
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
