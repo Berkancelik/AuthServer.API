@@ -45,7 +45,7 @@ namespace AuthServer.Service.Services
             var userList = new List<Claim> { 
 
                 // nameidentifier : id ye karşılık gelmektedir
-            new Claim(ClaimTypes.NameIdentifier, userApp.Id),
+                new Claim(ClaimTypes.NameIdentifier, userApp.Id),
                 new Claim(JwtRegisteredClaimNames.Email, userApp.Email),
                 // identity kütüphanesi gelen token içerisindeki tokenları bulamaz. Bu nedenle bizim role diye 
                 // belirlememiz gerkmektedir.
@@ -59,7 +59,20 @@ namespace AuthServer.Service.Services
             // token payload olduğunda burada önce bakar
 
             userList.AddRange(audience.Select(x => new Claim(JwtRegisteredClaimNames.Aud, x)));
+            return userList;
     }
+
+        private IEnumerable<Claim> GetClaimsByClient(Client client)
+        {
+            var claims = new List<Claim>();
+            claims.AddRange(client.Audiences.Select(x => new Claim(JwtRegisteredClaimNames.Aud, x)));
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString());
+            // bu token onjesini kimi için oluşturuyoruz
+            new Claim(JwtRegisteredClaimNames.Sub,client.Id.ToString());
+
+            return claims;
+        }
+
         public TokenDto CreateToken(UserApp userApp)
         {
             throw new NotImplementedException();
