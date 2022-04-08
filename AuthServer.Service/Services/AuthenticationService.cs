@@ -32,6 +32,7 @@ namespace AuthServer.Service.Services
             _tokenService = tokenService;
             _unitOfWork = unitOfWork;
             _userRefreshTokenService = userRefreshTokenService;
+            _userManager = userManager;
         }
 
         public async Task<Response<TokenDto>> CreateTokenAsync(LoginDto loginDto)
@@ -42,9 +43,9 @@ namespace AuthServer.Service.Services
             // bilmemesi için "Email or Password is wrong" diye bir hata yazdırmak doğru olabilir.
 
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
-            if (user == null) return Response<TokenDto>.Fail("Email or Password is wrong",400,true);
+            if (user == null) return Response<TokenDto>.Fail("Email or Password is wrong", 400, true);
 
-            if(!await _userManager.CheckPasswordAsync(user, loginDto.Password))
+            if (!await _userManager.CheckPasswordAsync(user, loginDto.Password))
             {
                 return Response<TokenDto>.Fail("Email or Password is wrong", 400, true);
             }
@@ -68,16 +69,17 @@ namespace AuthServer.Service.Services
             await _unitOfWork.CommitAsync();
             return Response<TokenDto>.Success(token, 200);
 
+        }
+
+        public Response<ClientLoginDto> CreateTokenByClient(ClientLoginDto clientLoginDto)
+        {
+            var client = _clients.SingleOrDefault(x => x.Id == clientLoginDto.ClientId && x.Secret == clientLoginDto.ClientSecret);
+            if (client == null)
+            {
+                return Response<ClientTokenDto>.Fail("Email or Password is wrong", 400, true);
             }
 
 
-    }
-
-}
-
-        public Task<Response<ClientLoginDto>> CreateTokenByClient(ClientLoginDto clientLoginDto)
-        {
-            throw new NotImplementedException();
         }
 
         public Task<Response<TokenDto>> CreateTokenByRefreshToken(string refreshToken)
@@ -90,4 +92,6 @@ namespace AuthServer.Service.Services
             throw new NotImplementedException();
         }
     }
+
 }
+
