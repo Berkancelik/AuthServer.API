@@ -33,7 +33,7 @@ namespace AuthServer.API
             services.Configure<CustomTokenOptions>(Configuration.GetSection("TokenOption"));
             
             // aþaðýdaki yöntem ile Client'e herhangi bir constructor dan eriþebilirim. Bu isme de OpptionPatterns denir.
-            services.Configure<Client>(Configuration.GetSection("Clients"));
+            services.Configure<List<Client>>(Configuration.GetSection("Clients"));
 
             services.AddControllers();
             services.AddSwaggerGen(c =>
