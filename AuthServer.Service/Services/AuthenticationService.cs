@@ -71,20 +71,23 @@ namespace AuthServer.Service.Services
 
         }
 
-        public Response<ClientLoginDto> CreateTokenByClient(ClientLoginDto clientLoginDto)
+        public Response<ClientTokenDto> CreateTokenByClient(ClientLoginDto clientLoginDto)
         {
             var client = _clients.SingleOrDefault(x => x.Id == clientLoginDto.ClientId && x.Secret == clientLoginDto.ClientSecret);
             if (client == null)
             {
-                return Response<ClientTokenDto>.Fail("Email or Password is wrong", 400, true);
+                return Response<ClientTokenDto>.Fail("hata",400,true);
             }
+
+            var token = _tokenService.CreateTokenByClient(client);
+            return Response<ClientTokenDto>.Success(token, 200);
 
 
         }
 
         public async Task<Response<TokenDto>> CreateTokenByRefreshToken(string refreshToken)
         {
-            var existRefreshToken = await _userRefreshTokenService.Where(x => x.Code == existRefreshToken).SingleOrDefaultAsync();
+            var existRefreshToken = await _userRefreshTokenService.Where(x => x.Code == refreshToken).SingleOrDefaultAsync();
             if (existRefreshToken==null)
             {
                 return Response<TokenDto>.Fail("Refresh token not found", 404, true);
@@ -106,10 +109,22 @@ namespace AuthServer.Service.Services
 
         }
 
-        public Task<Response<NoDataDto>> RevokeRefreshToken(string refreshToken)
+        public async Task<Response<NoDataDto>> RevokeRefreshToken(string refreshToken)
         {
-            throw new NotImplementedException();
+            var existRefreshToken = await _userRefreshTokenService.Where(x => x.Code ==refreshToken).SingleOrDefaultAsync();
+            if (existRefreshToken==null)
+            {
+                return Response<NoDataDto>.Fail("Refresh token not found", 404, true);
+
+            }
+            _userRefreshTokenService.Remove(existRefreshToken);
+
+            await _unitOfWork.CommitAsync();
+
+            return Response<NoDataDto>.Success(200);
         }
+
+     
     }
 
 }
