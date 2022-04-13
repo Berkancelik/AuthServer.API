@@ -5,6 +5,7 @@ using AuthServer.Core.Services;
 using AuthServer.Data;
 using AuthServer.Data.Repositories;
 using AuthServer.Service.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -40,7 +41,8 @@ namespace AuthServer.API
 
             // DI register
             // tek bir istekte bir tane nesne örneði oluþacak, ayný istekte
-            // birden fazla interface ile karþýlaþýrsa, ayný nesne örneðini kullanacak: AddScoped
+            // birden fazla interface ile karþýlaþýrsa, ayný nesne örneðini kullanacak: AddScoped..... Uygun olan AddScoped dir
+            // kendi projemizdeki core katmanýmýzdaki interface implemente edilmelidir.
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ITokenService, TokenService>();
@@ -71,13 +73,59 @@ namespace AuthServer.API
                 // þifre üretmek için bir token üretmek gerekmektedir. Bunun içinde AddDefaultTokenProviders tanýmlamamýz gerekmektedir.
             }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 
-
             // Bu olaya ooptionsPattern denmektedir.
             // aþaðýdaki konfigürasyon ile birlikte genel olarak projede istedeðimiz yerde geçebiliriz"CustomTokenOption"
             services.Configure<CustomTokenOptions>(Configuration.GetSection("TokenOption"));
+            // aþaðýda Configurationdaki TokenOptions'u okuduk sonra onu customTokenOptions'a mapledik ve bize buradan get den cutomTokenOptions gelmektedir.
+            var tokenOptions = Configuration.GetSection("TokenOption").Get<CustomTokenOptions>();
 
             // aþaðýdaki yöntem ile Client'e herhangi bir constructor dan eriþebilirim. Bu isme de OpptionPatterns denir.
             services.Configure<List<Client>>(Configuration.GetSection("Clients"));
+
+
+            //----------------------------------//---------------------------------//------------------------------//
+            // þema vermemiz gerekmektedir // Þema : Bir üyelik sisteminde  iki farklý üyeklik sistemi olabilir. Mesela bayiler için ayrý üyelik 
+            // müþteriler için farklý bir login olabilir. Bu aþamada þema olarak adlandýrýp düzenlemekteyiz.
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                // Authentication þema da bir  api olduðundan dolayý jwt bazlý bir doðrulama yapacaðýz.
+                // Yani requestimize headerýmýza tokenID arayacak. 
+            }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts => {
+                // þemalarýn ismi ayný fakat birbirlerini bilmemektedir. Bu þemalarý birbirine tanýmlamak için aþaðýdaki gibi tanýmlama yaparýz.
+                // bir token ggelidði zaman issues'ini kontrol etmek için aþaðýdaki belirleme yapýlýr.
+                // Validation parametlerini belirlemek için öncelikle TokenValidationParameters'i belirlememmiz gerekmektedir.
+                opts.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters() {
+                    // validateIssuer'ler appsetting.json klasöründedir.
+                    ValidIssuer = tokenOptions.Issuer,
+                    // birden fazla audience verebiliriz.
+                    ValidAudience = tokenOptions.Audience[0],
+                    //Issue Ýmzasýný doðrulama
+                    IssuerSigningKey = SignService.GetSymmetricSecurityKey(tokenOptions.SecurityKey),
+                    // bu token ömrü için validatelifetime true set edilir.
+
+                    ValidateIssuerSigningKey = true,
+                    ValidateAudience = true,
+                    ValidateIssuer = true,
+                    ValidateLifetime = true,
+                    // Aþaðýdaki deðer Default olarak 5 dakikalýk bir pay iþler.  Bu default 5 dakika Kurduðumuz api'yi farklý serverlara kurabiliriz//
+                    //bu debeple token'ý 5 dakika beklemek yerine  bunu 0'a çekebiliriz
+                    // Doðrulama iþlemi aþaðýdaki ayarlara göre olacaktýr.
+
+                    ClockSkew =TimeSpan.Zero
+                    
+
+                };
+
+            
+            });
+
+
+
+
+
+
+
 
             services.AddControllers();
             services.AddSwaggerGen(c =>

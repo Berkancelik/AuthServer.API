@@ -10,7 +10,7 @@ namespace AuthServer.Service.Services
     // asimetrik imzalama birbirine dosya göndermek istediğinde private&public keyler vardır
     // A                        B 
     //günümüzdeki haberleşmeler bu yolla yapılmaktadır =>> ssh
-    static class SignService
+    public static class SignService
     {
         public static SecurityKey GetSymmetricSecurityKey(string securityKey)
         {
